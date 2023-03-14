@@ -13,43 +13,52 @@ class FeedViewController: UIViewController {
     let tableView: UITableView = {
         let tableview = UITableView()
         tableview.register(FeedTableViewCell.self, forCellReuseIdentifier: FeedTableViewCell.id)
+        tableview.separatorStyle = .none
+        tableview.allowsSelection = false
         return tableview
     }()
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.hidesBackButton = true
+//        navigationController?.navigationBar.barTintColor = UIColor.systemBlue
         view.backgroundColor = .white
-        // Logout Button configure
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(logout))
         title = "Feed"
         setupUI()
         // delegate || dataSource
         tableView.delegate = self
         tableView.dataSource = self
     }
-    func setupUI() {
+    override func viewWillAppear(_ animated: Bool) {
+           super.viewWillAppear(animated)
+           navigationController?.navigationBar.prefersLargeTitles = true
+
+           let appearance = UINavigationBarAppearance()
+           appearance.backgroundColor = .systemBlue
+           appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+           appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+
+           navigationController?.navigationBar.tintColor = .white
+           navigationController?.navigationBar.standardAppearance = appearance
+           navigationController?.navigationBar.compactAppearance = appearance
+           navigationController?.navigationBar.scrollEdgeAppearance = appearance
+   }
+    private func setupUI() {
         // Add subviews
         view.addSubview(tableView)
         tableView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
     }
-    // MARK: - Button Actions
-    @objc func logout() {
-        navigationController?.popToRootViewController(animated: true)
-    }
 }
 extension FeedViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return view.frame.height / 2
+        return 450
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        return 5
     }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: FeedTableViewCell.id, for: indexPath) as? FeedTableViewCell else { return UITableViewCell()}
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FeedTableViewCell", for: indexPath) as! FeedTableViewCell
         return cell
     }
 }
