@@ -8,5 +8,6 @@ target 'Facebook App' do
   # Pods for Facebook App
   pod 'FBSDKLoginKit'
   pod 'SnapKit'
+  pod 'AdvancedPageControl'
   
 end

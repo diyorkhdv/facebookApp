@@ -1,14 +1,15 @@
 //
-//  FeedTableViewCell.swift
+//  DetailTableViewCell.swift
 //  Facebook App
 //
-//  Created by Diyor Khalmukhamedov on 13/03/23.
+//  Created by Diyor Khalmukhamedov on 15/03/23.
 //
 
 import UIKit
+import AdvancedPageControl
 
-class FeedTableViewCell: UITableViewCell {
-    static let id = "FeedTableViewCell"
+class DetailTableViewCell: UITableViewCell {
+    static let id = "DetailTableViewCell"
     // MARK: - UI Elements
     let profileImage: UIImageView = {
         let image = UIImageView()
@@ -42,8 +43,26 @@ class FeedTableViewCell: UITableViewCell {
         label.text = "Meanwhile, Beast turned to the dark side."
         return label
     }()
+    let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.showsHorizontalScrollIndicator = false
+        cv.allowsSelection = false
+        cv.isScrollEnabled = true
+        cv.register(DetailImagesCollectionViewCell.self, forCellWithReuseIdentifier: DetailImagesCollectionViewCell.id)
+        cv.backgroundColor = .white
+        cv.isPagingEnabled = true
+        return cv
+    }()
+    let pageControl = AdvancedPageControlView()
     let postImage: UIImageView = {
         let image = UIImageView()
+        image.isUserInteractionEnabled = true
+        image.image = UIImage(named: "dog")
         return image
     }()
     let likesLabel: UILabel = {
@@ -95,14 +114,28 @@ class FeedTableViewCell: UITableViewCell {
     // MARK: - Lifecycle
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        collectionView.delegate = self
+        collectionView.dataSource = self
     }
     required init?(coder: NSCoder) {
         fatalError("init (coder:) has not been implemented")
     }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // Page control configure
+        pageControl.drawer = SlideDrawer(numberOfPages: 3, height: 8, width: 8,
+                                               space: 10.0,
+                                               indicatorColor: .systemBlue,
+                                               dotsColor: .lightGray,
+                                               isBordered: false,
+                                               borderWidth: 0.0,
+                                               indicatorBorderColor: .clear,
+                                               indicatorBorderWidth: 0.0)
+        setupUI()
+    }
     // MARK: - Setup UI
     func setupUI() {
-        addSubviews(profileImage, nameLabel, dateLabel, cityLabel, postLabel, postImage, likesLabel, commentsLabel, seperatorView, likeButton, commentButton, shareButton, bottomSeperatorView)
+        addSubviews(profileImage, nameLabel, dateLabel, cityLabel, postLabel, collectionView, pageControl, postImage, likesLabel, commentsLabel, seperatorView, likeButton, commentButton, shareButton, bottomSeperatorView)
         profileImage.snp.makeConstraints { make in
             make.width.height.equalTo(50)
             make.left.equalToSuperview().offset(15)
@@ -124,14 +157,19 @@ class FeedTableViewCell: UITableViewCell {
             make.top.equalTo(profileImage.snp.bottom).offset(6.5)
             make.left.equalTo(profileImage)
         }
-        postImage.snp.makeConstraints { make in
+        collectionView.snp.makeConstraints { make in
             make.left.right.equalToSuperview()
             make.top.equalTo(postLabel.snp.bottom).offset(10)
             make.height.equalTo(240)
         }
+        pageControl.snp.makeConstraints { make in
+            make.top.equalTo(collectionView.snp.bottom).offset(5)
+            make.centerX.equalToSuperview()
+            make.width.equalTo(200)
+        }
         likesLabel.snp.makeConstraints { make in
             make.left.equalTo(postLabel)
-            make.top.equalTo(postImage.snp.bottom).offset(10)
+            make.top.equalTo(pageControl.snp.bottom).offset(10)
         }
         commentsLabel.snp.makeConstraints { make in
             make.left.equalTo(likesLabel.snp.right).offset(10)
@@ -166,6 +204,29 @@ class FeedTableViewCell: UITableViewCell {
             make.top.equalTo(shareButton.snp.bottom).offset(15)
             make.height.equalTo(15)
         }
-        
+    }
+}
+// MARK: - UICollectionView Delegate || DataSource || FlowLayout
+extension DetailTableViewCell: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 3
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: frame.width, height: 200)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DetailImagesCollectionViewCell", for: indexPath) as! DetailImagesCollectionViewCell
+        let images = [UIImage(named: "dog"), UIImage(named: "dog2"), UIImage(named: "dog3")]
+        cell.postImage.image = images[indexPath.row]
+        return cell
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offSet = scrollView.contentOffset.x
+        let width = scrollView.frame.width
+        let page = (Int(round(offSet / width)))
+        pageControl.setPage(page)
     }
 }
