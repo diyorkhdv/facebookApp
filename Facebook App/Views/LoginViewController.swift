@@ -8,12 +8,26 @@ import UIKit
 import FBSDKLoginKit
 
 class LoginViewController: UIViewController {
+    // MARK: - ViewModel
+    let viewModel = LoginViewModel()
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Login"
         loginFB()
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // NavBar Configure
+        let appearance = UINavigationBarAppearance()
+        appearance.backgroundColor = .white
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
+        
+        navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
     }
     private func loginFB() {
         if let token = AccessToken.current,
@@ -47,34 +61,25 @@ extension LoginViewController: LoginButtonDelegate {
                 let name = dictionary.object(forKey: "name") as! String
                 let email = dictionary.object(forKey: "email") as! String
                 let id = dictionary.object(forKey: "id") as! String
-                
-//                do {
-//                    let model = try JSONDecoder().decode(FacebookResponseModel.self, from: dataExample)
-//                    print("modelName: \(model.name)")
-//                    print("modelEmail: \(model.email)")
-//                    print("modelID: \(model.id)")
-////                    print("model URL: \(model.picture[0].url)")
-//                } catch {
-//                    print("error json")
-//                }
-                
-                // Get Image
+                // Get Image URL
                 if let picture = dictionary["picture"] as? NSDictionary, let data = picture["data"] as? NSDictionary,
                    let urlStr = data["url"] as? String, let url = URL(string: urlStr) {
                     print("urlStr: \(urlStr)")
-                    URLSession.shared.dataTask(with: url) { (data, response, error) in
-                      guard let imageData = data else { return }
-                        if let profileImage = UIImage(data: imageData)?.pngData() {
-                            // CoreData Save profile
+                    // Get Image Data
+                    self.viewModel.getImage(url: url) { [weak self] result in
+                        switch result {
+                        case .success(let data):
                             DispatchQueue.main.async {
-                                CoreDataManager.shareInstance.saveProfile(data: profileImage, email: email, id: id, name: name)
+                                // CoreData Save profile
+                                CoreDataManager.shareInstance.saveProfile(data: data, email: email, id: id, name: name)
                                 let tabBar = TabBarController()
                                 tabBar.modalPresentationStyle = .fullScreen
-                                self.present(tabBar, animated: true)
+                                self?.present(tabBar, animated: true)
                             }
+                        case .failure(_):
+                            break
                         }
-                    }.resume()
-                    
+                    }
                 }
             } else {
                 self.showAlert(title: "Error", description: error?.localizedDescription ?? "error occured")

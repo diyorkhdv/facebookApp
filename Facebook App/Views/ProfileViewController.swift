@@ -55,7 +55,6 @@ class ProfileViewController: UIViewController {
         // CoreData read
         let profiles = CoreDataManager.shareInstance.fetchProfiles()
         for profile in profiles {
-            print("coredata read")
             let name = profile.name
             let email = profile.email
             let id = profile.id
@@ -70,8 +69,6 @@ class ProfileViewController: UIViewController {
     }
     override func viewWillAppear(_ animated: Bool) {
            super.viewWillAppear(animated)
-//           navigationController?.navigationBar.prefersLargeTitles = true
-
            let appearance = UINavigationBarAppearance()
            appearance.backgroundColor = .systemBlue
            appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
@@ -89,7 +86,9 @@ class ProfileViewController: UIViewController {
             let manager = LoginManager()
             manager.logOut()
             CoreDataManager.shareInstance.deleteProfiles()
-            self.dismiss(animated: true)
+            let vc = LoginViewController()
+            self.view.window?.rootViewController = UINavigationController(rootViewController: vc)
+            self.view.window?.makeKeyAndVisible()
         }))
         logoutAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (action: UIAlertAction!) in
         }))
