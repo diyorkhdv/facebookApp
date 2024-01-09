@@ -11,9 +11,9 @@ import CoreData
 final class CoreDataManager {
     static let shareInstance = CoreDataManager()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    func saveProfile(data: Data, email: String, id: String, name: String) {
+    func saveProfile(imageData: Data, email: String, id: String, name: String) {
         let profile = Profile(context: context)
-        profile.image = data
+        profile.image = imageData
         profile.name = name
         profile.email = email
         profile.id = id
@@ -28,7 +28,7 @@ final class CoreDataManager {
         var fetchingImage = [Profile]()
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Profile")
         do {
-            fetchingImage = try context.fetch(fetchRequest) as! [Profile]
+            let fetchingImage = try context.fetch(fetchRequest) as! [Profile]
         } catch {
             print("Error while fetching the profile")
         }

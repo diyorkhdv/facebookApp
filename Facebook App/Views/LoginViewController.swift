@@ -58,9 +58,9 @@ extension LoginViewController: LoginButtonDelegate {
             if error == nil {
                 // Get properties
                 let dictionary = result as! [String: AnyObject] as NSDictionary
-                let name = dictionary.object(forKey: "name") as! String
-                let email = dictionary.object(forKey: "email") as! String
-                let id = dictionary.object(forKey: "id") as! String
+                guard let name = dictionary.object(forKey: "name") as? String else { return }
+                guard let email = dictionary.object(forKey: "email") as? String else { return }
+                guard let id = dictionary.object(forKey: "id") as? String else { return }
                 // Get Image URL
                 if let picture = dictionary["picture"] as? NSDictionary, let data = picture["data"] as? NSDictionary,
                    let urlStr = data["url"] as? String, let url = URL(string: urlStr) {
@@ -71,7 +71,7 @@ extension LoginViewController: LoginButtonDelegate {
                         case .success(let data):
                             DispatchQueue.main.async {
                                 // CoreData Save profile
-                                CoreDataManager.shareInstance.saveProfile(data: data, email: email, id: id, name: name)
+                                CoreDataManager.shareInstance.saveProfile(imageData: data, email: email, id: id, name: name)
                                 let tabBar = TabBarController()
                                 tabBar.modalPresentationStyle = .fullScreen
                                 self?.present(tabBar, animated: true)
